@@ -1,16 +1,16 @@
 ---
-  title: "Opiniones apps Play Store (kaggle) Taller1"
+title: "Actividad 11 de marzo AirBnB"
 author: "Reinier Mujica"
-date: "1 de marzo de 2019"
+date: "11 de marzo de 2019"
 output: 
   html_document: 
-  number_sections: yes
-toc: yes
+    number_sections: yes
+    toc: yes
 ---
   
 ```{r echo = FALSE}
 library(knitr)
-opts_chunk$set(message = FALSE, warning = FALSE, cache = TRUE)
+opts_chunk$set(message = FALSE, warning = FALSE, cache = TRUE, comment = NA)
 options(width = 100, dplyr.width = 100)
 library(ggplot2)
 theme_set(theme_light())
@@ -43,6 +43,7 @@ library(ggmap)
 # devtools::install_github("hadley/ggplot2")
 
 ```
+# Análisis de los datos de Airbnb de la ciudad de Barcelona
 
 ## Guardando la Api key de Google
 ```{r echo=FALSE}
@@ -56,8 +57,8 @@ mll_data = read.csv("listings.csv", stringsAsFactors = TRUE, header = TRUE, sep 
 ```
 
 ## Limpiamos los datos
-```{r echo=FALSE}
-str_trim(mll_data$neighbourhood_cleansed, side=c("both"))
+```{r results="hide"}
+test <- capture.output(str_trim(mll_data$neighbourhood_cleansed, side=c("both")))
 mll_data$price=as.numeric(gsub("\\$","",mll_data$price))
 ```
 
@@ -143,16 +144,20 @@ mean(mll_data$price, na.rm = TRUE)
 ```
 
 ## El precio puede diferir dependiendo de la localidad. Podemos verificarlo a continuación
-```{r echo=FALSE}
-tapply(mll_data$price, mll_data$neighbourhood_cleansed, mean, na.rm = TRUE)
+```{r echo=FALSE, comment=NA}
+t <- capture.output(tapply(mll_data$price, mll_data$neighbourhood_cleansed, mean, na.rm = TRUE))
 
 #Alternativamente
 aggregate(price ~ neighbourhood_cleansed, data=mll_data, FUN=mean)
+
+```
+## O dependiendo del tipo de propiedad
+```{r comment=NA}
 table(mll_data$property_type)
 ```
-## Podemos examinar el precio según el tipo de propiedad
-## Examinemos la asociacion entre precios y los evaluaciones de los consumidores
-```{r}
+
+## Podemos examinar el precio según el tipo de propiedad, examinemos la asociacion entre precios y los evaluaciones de los consumidores
+```{r comment=NA}
 aggregate(price ~ property_type, data=mll_data, FUN=mean)
 
 aggregate(price ~ review_scores_value, data=mll_data, FUN=mean)
@@ -259,20 +264,13 @@ data.frame( R2 = R2(predict_rf, test$price, na.rm = TRUE),
             MAE = MAE(predict_rf, test$price, na.rm = TRUE))
 ```
 
-## Consideremos la validacion cruzada
-```{r}
-model_vc_rf = train(price ~ bedrooms + review_scores_value + number_of_reviews + square_feet + longitude + latitude + cancellation_policy, data = data_reg, method = "rf", trControl = train.control)
-print(model_vc_rf)
-
-plot(model_rf)
-```
 
 ## Grafico importancia de las variables
 ```{r}
 varImpPlot(model_rf, sort=TRUE, main="Importancia", n.var=5)
 ```
 
-#Tabla con la importancia de las variables
+## Tabla con la importancia de las variables
 ```{r}
 var.imp=data.frame(importance(model_rf, type=2))
 var.imp$Variables=row.names(var.imp)
